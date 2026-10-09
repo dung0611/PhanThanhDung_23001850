@@ -16,11 +16,6 @@ include __DIR__ . '/view/header.php';
         <span class="badge badge-in-stock">Hoạt động bình thường</span>
     </div>
 
-    <p style="margin-bottom: 1.5rem; font-size: 1.05rem; color: #655073;">
-        Hệ thống được xây dựng theo mô hình phân tách tầng độc lập (Common - Model - View - Page Controllers) 
-        cung cấp đầy đủ các thao tác <strong>CRUD (Create - Read - Update - Delete)</strong> cho sản phẩm giỏ hàng.
-    </p>
-
     <!-- Thống kê nhanh -->
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
         <div style="background: #f3e8ff; border-left: 4px solid #a855f7; padding: 1.25rem; border-radius: 6px;">

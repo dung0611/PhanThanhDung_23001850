@@ -54,7 +54,7 @@ include __DIR__ . '/view/header.php';
                 <tbody>
                     <?php foreach ($products as $prod): ?>
                         <tr>
-                            <td class="text-center"><?php echo (int)$prod['id']; ?></td>
+                            <td class="text-center"><?php echo 'SP' . str_pad((string)(int)$prod['id'], 3, '0', STR_PAD_LEFT); ?></td>
                             <td style="font-weight: 600; color: #1e293b;">
                                 <?php echo htmlspecialchars($prod['name'], ENT_QUOTES, 'UTF-8'); ?>
                             </td>

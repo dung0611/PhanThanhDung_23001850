@@ -26,10 +26,6 @@ include __DIR__ . '/view/header.php';
             <div style="font-size: 0.875rem; color: #9d174d; font-weight: 600;">Tổng tồn kho</div>
             <div style="font-size: 2rem; font-weight: 700; color: #831843;"><?php echo $totalQuantity; ?> <span style="font-size: 1rem; font-weight: normal;">sản phẩm</span></div>
         </div>
-        <div style="background: #eef2ff; border-left: 4px solid #6366f1; padding: 1.25rem; border-radius: 6px;">
-            <div style="font-size: 0.875rem; color: #4338ca; font-weight: 600;">Cơ sở dữ liệu</div>
-            <div style="font-size: 1.25rem; font-weight: 700; color: #3730a3; margin-top: 0.5rem;">shopping_cart.products</div>
-        </div>
     </div>
 
     <!-- Phím tắt điều hướng -->

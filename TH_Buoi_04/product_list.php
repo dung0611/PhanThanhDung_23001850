@@ -44,6 +44,7 @@ include __DIR__ . '/view/header.php';
             <table class="data-table">
                 <thead>
                     <tr>
+                        <th style="width: 80px;" class="text-center">ID</th>
                         <th>Tên sản phẩm</th>
                         <th style="width: 180px;" class="text-right">Giá</th>
                         <th style="width: 140px;" class="text-center">Số lượng</th>
@@ -53,6 +54,7 @@ include __DIR__ . '/view/header.php';
                 <tbody>
                     <?php foreach ($products as $prod): ?>
                         <tr>
+                            <td class="text-center"><?php echo (int)$prod['id']; ?></td>
                             <td style="font-weight: 600; color: #1e293b;">
                                 <?php echo htmlspecialchars($prod['name'], ENT_QUOTES, 'UTF-8'); ?>
                             </td>
@@ -65,7 +67,7 @@ include __DIR__ . '/view/header.php';
                                 <?php elseif ($prod['quantity'] > 0): ?>
                                     <span class="badge badge-low-stock"><?php echo (int)$prod['quantity']; ?> cái</span>
                                 <?php else: ?>
-                                    <span class="badge badge-out-stock">Hết hàng</span>
+                                    <span class="badge badge-out-stock">0 cái</span>
                                 <?php endif; ?>
                             </td>
                             <td class="text-center">

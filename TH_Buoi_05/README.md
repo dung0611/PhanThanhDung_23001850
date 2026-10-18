@@ -2,7 +2,6 @@
 
 - **Sinh viên:** Phan Thanh Dũng - **MSSV:** 23001850.
 - **Môn học:** Phát triển ứng dụng Web.
-- Kế thừa cấu trúc và giao diện tím–hồng của TH4, bổ sung phần tài khoản theo đề PDF.
 
 ## Chức năng
 

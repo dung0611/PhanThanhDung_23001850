@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240" role="img" aria-label="Ảnh đại diện sinh viên minh họa">
+  <rect width="240" height="240" rx="40" fill="#e3ebe3"/>
+  <circle cx="192" cy="45" r="51" fill="#d0dfcf"/>
+  <path d="M28 240v-24c0-47 40-72 92-72s92 25 92 72v24" fill="#326552"/>
+  <path d="M98 141h44v31l-22 20-22-20" fill="#e7b18d"/>
+  <path d="m95 164 25 28-20 22-19-43m64-7-25 28 20 22 19-43" fill="#f7f8ed"/>
+  <ellipse cx="120" cy="105" rx="47" ry="55" fill="#efc3a1"/>
+  <path d="M73 105V79c0-33 19-49 48-49 34 0 49 21 49 47l-3 28-11-18-4-25c-18 15-40 18-66 15l-4 26Z" fill="#293d33"/>
+  <path d="M103 125c11 10 24 10 35 0" fill="none" stroke="#a96752" stroke-width="4" stroke-linecap="round"/>
+  <g fill="#3c4537"><circle cx="101" cy="104" r="3"/><circle cx="140" cy="104" r="3"/></g>
+</svg>

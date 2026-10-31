@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài 2 · Đặt vé xem phim</title>
+    <link rel="stylesheet" href="assets/style.css">
+    <script src="assets/vendor/vue.global.prod.js" defer></script>
+    <script src="assets/bai_02.js" defer></script>
+</head>
+<body>
+    <noscript>Vui lòng bật JavaScript để sử dụng form đặt vé.</noscript>
+    <main id="app" v-cloak>
+        <header class="page-header">
+            <span class="eyebrow">THỰC HÀNH 06 / VUE.JS</span>
+            <h1 ref="tieuDeTrang" tabindex="-1">{{ xacNhan ? 'Vé xem phim của bạn' : 'Chọn suất chiếu. Sẵn sàng vào rạp.' }}</h1>
+        </header>
+
+        <section id="booking-history" class="booking-history" v-if="!xacNhan && lichSuDatVe.length > 0" aria-labelledby="history-title">
+            <div class="history-heading"><h2 id="history-title">Thông tin vé bạn đã đặt</h2><span>{{ lichSuDatVe.length }} đơn đã đặt</span></div>
+            <ol class="booked-list">
+                <li v-for="ve in lichSuDatVe" :key="ve.id" class="booked-ticket" :data-order-id="ve.id">
+                    <div class="booked-heading">
+                        <div><span class="eyebrow">LẦN ĐẶT {{ ve.id }}</span><h3>{{ ve.tenPhim }}</h3></div>
+                        <div class="booked-total"><span>Tổng tiền</span><strong>{{ dinhDangTien(ve.tongTien) }}</strong></div>
+                    </div>
+                    <dl class="booked-details">
+                        <div><dt>Khách hàng</dt><dd>{{ ve.hoTen }}</dd></div>
+                        <div><dt>Suất chiếu</dt><dd>{{ ve.suatChieu }}</dd></div>
+                        <div><dt>Loại vé</dt><dd>{{ ve.tenLoaiVe }}</dd></div>
+                        <div><dt>Giá vé</dt><dd>{{ dinhDangTien(ve.giaVe) }} / vé</dd></div>
+                        <div><dt>Số lượng</dt><dd>{{ ve.soLuong }} vé</dd></div>
+                        <div><dt>Combo bắp nước</dt><dd>{{ ve.coCombo ? 'Có · ' + dinhDangTien(ve.tienCombo) : 'Không' }}</dd></div>
+                    </dl>
+                </li>
+            </ol>
+        </section>
+
+        <div class="booking-layout" v-show="!xacNhan">
+            <section class="booking-panel" aria-labelledby="booking-title">
+                <div class="section-heading"><span class="step-number">01</span><div><h2 id="booking-title">Thông tin đặt vé</h2><p>Vé của bạn, theo cách bạn muốn.</p></div></div>
+                <!-- Ngăn tải lại trang, xử lý đặt vé trong methods. -->
+                <form @submit.prevent="datVe" novalidate>
+                    <div class="field">
+                        <label for="customer-name">Họ tên khách hàng <span aria-hidden="true">*</span></label>
+                        <!-- .trim bỏ khoảng trắng ở hai đầu tên. -->
+                        <input id="customer-name" v-model.trim="form.hoTen" type="text" placeholder="Nhập họ và tên của bạn" autocomplete="name" required aria-describedby="name-help">
+                        <p id="name-help" class="field-help">Họ tên không được để trống hoặc chỉ gồm khoảng trắng.</p>
+                    </div>
+                    <div class="field">
+                        <label for="showtime">Suất chiếu</label>
+                        <select id="showtime" v-model="form.suatChieu">
+                            <option v-for="suat in cacSuatChieu" :key="suat" :value="suat">{{ suat }} · Phòng chiếu 01</option>
+                        </select>
+                        <p class="field-help">7 suất chiếu trong ngày để bạn lựa chọn.</p>
+                    </div>
+
+                    <fieldset class="ticket-field">
+                        <legend>Loại vé</legend>
+                        <div class="ticket-options">
+                            <label class="ticket-option" :class="{ selected: form.loaiVe === 'thuong' }">
+                                <input id="standard-ticket" type="radio" v-model="form.loaiVe" value="thuong" name="ticket-type">
+                                <span><strong>Vé thường</strong><small>{{ dinhDangTien(bangGia.thuong) }} / vé</small></span>
+                            </label>
+                            <label class="ticket-option" :class="{ selected: form.loaiVe === 'vip' }">
+                                <input id="vip-ticket" type="radio" v-model="form.loaiVe" value="vip" name="ticket-type">
+                                <span><strong>Vé VIP</strong><small>{{ dinhDangTien(bangGia.vip) }} / vé</small></span>
+                            </label>
+                        </div>
+                    </fieldset>
+
+                    <div class="field quantity-field">
+                        <div><label for="ticket-quantity">Số lượng vé</label><p id="quantity-help" class="field-help">Số nguyên từ 1 đến 10 vé.</p></div>
+                        <div class="quantity-control">
+                            <button type="button" @click="giamSoLuong" :disabled="!soLuongHopLe || form.soLuong <= 1" aria-label="Giảm số lượng vé">−</button>
+                            <!-- .number chuyển giá trị nhập thành số, computed kiểm tra số nguyên. -->
+                            <input id="ticket-quantity" type="number" v-model.number="form.soLuong" min="1" max="10" step="1" required :aria-invalid="!soLuongHopLe" aria-describedby="quantity-help quantity-error">
+                            <button type="button" @click="tangSoLuong" :disabled="!soLuongHopLe || form.soLuong >= 10" aria-label="Tăng số lượng vé">+</button>
+                        </div>
+                    </div>
+                    <p id="quantity-error" class="error-message" v-show="!soLuongHopLe" role="alert">Vui lòng nhập số nguyên từ 1 đến 10.</p>
+
+                    <label class="combo-option" for="popcorn-combo" :class="{ selected: form.coCombo }">
+                        <input id="popcorn-combo" type="checkbox" v-model="form.coCombo">
+                        <span class="combo-icon" aria-hidden="true">✦</span>
+                        <span class="combo-description"><strong>Thêm combo bắp & nước</strong><small>Một combo cho cả đơn đặt vé</small></span>
+                        <span class="combo-price">+ {{ dinhDangTien(giaCombo) }}</span>
+                    </label>
+
+                    <div class="form-actions">
+                        <button id="book-ticket" type="submit" class="primary-button" :disabled="!coTheDatVe">Đặt vé <span aria-hidden="true">↗</span></button>
+                        <button id="reset-form" type="button" class="reset-button" @click="datLaiForm">Đặt lại form</button>
+                    </div>
+                    <p class="form-note">Điền họ tên và số lượng hợp lệ để đặt vé.</p>
+                </form>
+            </section>
+
+            <aside class="summary-panel" aria-labelledby="movie-title">
+                <img class="movie-poster" :src="phim.poster" :alt="'Poster phim ' + phim.ten" width="300" height="450">
+                <div class="summary-body">
+                    <span class="eyebrow">BỘ PHIM CỦA BẠN</span>
+                    <h2 id="movie-title">{{ phim.ten }}</h2>
+                    <p class="movie-meta">{{ phim.theLoai }} <span aria-hidden="true">·</span> {{ phim.thoiLuong }} phút</p>
+                    <dl class="order-details">
+                        <div><dt>Suất chiếu</dt><dd>{{ form.suatChieu }}</dd></div>
+                        <div><dt>Loại vé</dt><dd>{{ tenLoaiVe }}</dd></div>
+                        <div><dt>Số lượng</dt><dd>{{ soLuongHopLe ? form.soLuong + ' vé' : 'Chưa hợp lệ' }}</dd></div>
+                    </dl>
+                    <div class="price-summary" aria-live="polite" aria-atomic="true">
+                        <dl class="price-details">
+                            <div><dt>Tiền vé</dt><dd id="ticket-subtotal">{{ soLuongHopLe ? dinhDangTien(tienVe) : '—' }}</dd></div>
+                            <div><dt>Combo bắp nước <small>(1 lần/đơn)</small></dt><dd id="combo-subtotal">{{ dinhDangTien(tienCombo) }}</dd></div>
+                        </dl>
+                        <div class="total-row"><span>Tổng thanh toán</span><strong id="order-total">{{ soLuongHopLe ? dinhDangTien(tongTien) : '—' }}</strong></div>
+                    </div>
+                    <p class="summary-note"><span aria-hidden="true">◇</span> Tổng tiền được cập nhật khi bạn thay đổi lựa chọn.</p>
+                </div>
+                <footer class="summary-footer">VÉ XEM PHIM <span aria-hidden="true">/</span> THỰC HÀNH VUEJS</footer>
+            </aside>
+        </div>
+
+        <section id="booking-confirmation" class="confirmation" v-if="xacNhan" aria-labelledby="confirmation-title">
+            <div class="confirmation-icon" aria-hidden="true">✓</div>
+            <div class="confirmation-body">
+                <span class="eyebrow">THÔNG TIN XÁC NHẬN</span>
+                <h2 id="confirmation-title" ref="tieuDeXacNhan" tabindex="-1">Đặt vé thành công!</h2>
+                <p>Cảm ơn <strong id="confirmed-name">{{ xacNhan.hoTen }}</strong>. Dưới đây là thông tin bạn vừa đặt.</p>
+                <dl class="confirmation-details">
+                    <div><dt>Bộ phim</dt><dd>{{ xacNhan.tenPhim }}</dd></div>
+                    <div><dt>Suất chiếu</dt><dd>{{ xacNhan.suatChieu }}</dd></div>
+                    <div><dt>Loại vé</dt><dd>{{ xacNhan.tenLoaiVe }} · {{ dinhDangTien(xacNhan.giaVe) }} / vé</dd></div>
+                    <div><dt>Số lượng</dt><dd>{{ xacNhan.soLuong }} vé</dd></div>
+                    <div><dt>Combo bắp nước</dt><dd>{{ xacNhan.coCombo ? 'Có · ' + dinhDangTien(xacNhan.tienCombo) : 'Không' }}</dd></div>
+                    <div class="confirmed-total"><dt>Tổng tiền</dt><dd id="confirmed-total">{{ dinhDangTien(xacNhan.tongTien) }}</dd></div>
+                </dl>
+                <div class="confirmation-actions">
+                    <button id="back-home" type="button" class="primary-button" @click="veTrangChu"><span aria-hidden="true">←</span> Về trang chủ</button>
+                </div>
+            </div>
+        </section>
+        <footer class="page-footer">Bài 2 · Đặt vé xem phim <span aria-hidden="true">/</span> Phan Thanh Dũng · 23001850</footer>
+    </main>
+</body>
+</html>

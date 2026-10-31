@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài 1 · Thẻ thông tin sinh viên</title>
+    <link rel="stylesheet" href="assets/style.css">
+    <script src="assets/vendor/vue.global.prod.js" defer></script>
+    <script src="assets/bai_01.js" defer></script>
+</head>
+<body>
+    <noscript>Vui lòng bật JavaScript để xem thẻ thông tin sinh viên.</noscript>
+    <main id="app" v-cloak>
+        <header class="page-header">
+            <span class="eyebrow">THỰC HÀNH 06 <span aria-hidden="true">/</span> VUE.JS</span>
+            <h1>Thẻ thông tin sinh viên</h1>
+    
+        </header>
+
+        <div class="workspace">
+            <article class="student-card" aria-labelledby="student-name">
+                <div class="card-cover"><span>HỒ SƠ SINH VIÊN</span><span aria-hidden="true">01</span></div>
+                <div class="card-body">
+                    <!-- v-bind liên kết cả đường dẫn ảnh và nội dung thay thế. -->
+                    <img class="avatar" v-bind:src="sinhVien.anhDaiDien"
+                         v-bind:alt="'Ảnh đại diện của ' + sinhVien.hoTen" width="104" height="104"
+                         @error="dungAnhMacDinh">
+                    <div class="identity">
+                        <!-- Nội suy {{ }} hiển thị họ tên. -->
+                        <h2 id="student-name">{{ sinhVien.hoTen }}</h2>
+                        <p class="student-id">MSSV <strong>{{ sinhVien.maSinhVien }}</strong></p>
+                    </div>
+                    <dl class="details">
+                        <div><dt>Lớp</dt><dd v-text="sinhVien.lop"></dd></div>
+                        <div>
+                            <dt>Trạng thái</dt>
+                            <dd>
+                                <span v-if="sinhVien.dangHoc" class="status studying"><i aria-hidden="true"></i>Đang học</span>
+                                <span v-else class="status inactive"><i aria-hidden="true"></i>Đã nghỉ</span>
+                            </dd>
+                        </div>
+                    </dl>
+
+                    <section class="academic" aria-label="Kết quả học tập" aria-live="polite">
+                        <div class="score-heading">
+                            <span>Điểm trung bình</span>
+                            <strong><span class="score">{{ diemHopLe ? sinhVien.diemTrungBinh.toLocaleString('vi-VN', { maximumFractionDigits: 20 }) : '—' }}</span><small> / 10</small></strong>
+                        </div>
+                        <div class="score-track" aria-hidden="true"><div :class="mauXepLoai" :style="{ width: (diemHopLe ? sinhVien.diemTrungBinh * 10 : 0) + '%' }"></div></div>
+                        <!-- Chỉ xếp loại khi điểm là số trong khoảng 0–10. -->
+                        <div class="ranking-row">
+                            <span>Xếp loại học lực</span>
+                            <strong class="rank" :class="mauXepLoai">
+                                <span v-if="!diemHopLe">Chưa xác định</span>
+                                <span v-else-if="sinhVien.diemTrungBinh >= 8">Giỏi</span>
+                                <span v-else-if="sinhVien.diemTrungBinh >= 6.5">Khá</span>
+                                <span v-else-if="sinhVien.diemTrungBinh >= 5">Trung bình</span>
+                                <span v-else>Chưa đạt</span>
+                            </strong>
+                        </div>
+                    </section>
+
+                    <button type="button" class="intro-toggle" @click="hienGioiThieu = !hienGioiThieu"
+                            :aria-expanded="hienGioiThieu" aria-controls="introduction">
+                        {{ hienGioiThieu ? 'Ẩn giới thiệu' : 'Hiện giới thiệu' }}
+                        <span aria-hidden="true">{{ hienGioiThieu ? '−' : '+' }}</span>
+                    </button>
+                    <!-- v-show ẩn/hiện bằng CSS, giữ phần giới thiệu trong DOM. -->
+                    <div id="introduction" class="introduction" v-show="hienGioiThieu">
+                        <p>Xin chào! Mình là <strong>{{ sinhVien.hoTen }}</strong>, sinh viên lớp <strong v-text="sinhVien.lop"></strong>. </p>
+                    </div>
+                </div>
+                <footer class="card-footer"><span class="live-dot" aria-hidden="true"></span>Thông tin cập nhật trực tiếp</footer>
+            </article>
+
+            <section class="editor" aria-labelledby="editor-title">
+                <span class="eyebrow">THỬ TƯƠNG TÁC</span>
+                <h2 id="editor-title">Chỉnh sửa thông tin</h2>
+                <p class="editor-description">Thay đổi dữ liệu bên dưới và xem thẻ sinh viên tự cập nhật.</p>
+                <form @submit.prevent>
+                    <label for="full-name">Họ và tên</label>
+                    <input id="full-name" type="text" v-model="sinhVien.hoTen" autocomplete="name">
+                    <div class="field-grid">
+                        <div><label for="student-id">Mã sinh viên</label><input id="student-id" type="text" v-model="sinhVien.maSinhVien"></div>
+                        <div><label for="class-name">Lớp</label><input id="class-name" type="text" v-model="sinhVien.lop"></div>
+                    </div>
+                    <label for="avatar-url">Đường dẫn ảnh đại diện</label>
+                    <input id="avatar-url" type="text" v-model.trim="sinhVien.anhDaiDien" aria-describedby="avatar-help">
+                    <p id="avatar-help" class="field-help">Nhập URL hoặc đường dẫn ảnh. Ảnh không tải được sẽ dùng ảnh mẫu.</p>
+                    <label for="average-score">Điểm trung bình <span class="label-note">Thang điểm 10</span></label>
+                    <input id="average-score" type="number" v-model.number="sinhVien.diemTrungBinh"
+                           min="0" max="10" step="0.01" :aria-invalid="!diemHopLe" aria-describedby="score-help">
+                    <p id="score-help" class="field-help" :class="{ 'error-text': !diemHopLe }">
+                        {{ diemHopLe ? 'Thử các mốc 5, 6,5 và 8 để xem xếp loại thay đổi.' : 'Vui lòng nhập điểm từ 0 đến 10.' }}
+                    </p>
+                    <label class="checkbox-label" for="studying"><input id="studying" type="checkbox" v-model="sinhVien.dangHoc"><span>Sinh viên đang học</span></label>
+                    <button type="button" class="reset-button" @click="khoiPhuc">Khôi phục dữ liệu mẫu <span aria-hidden="true">↺</span></button>
+                </form>
+                <aside class="grading-note">
+                    <h3>Thang xếp loại</h3>
+                    <dl>
+                        <div><dt><i class="legend-dot gioi" aria-hidden="true"></i>Giỏi</dt><dd>8 – 10</dd></div>
+                        <div><dt><i class="legend-dot kha" aria-hidden="true"></i>Khá</dt><dd>6,5 – dưới 8</dd></div>
+                        <div><dt><i class="legend-dot trung-binh" aria-hidden="true"></i>Trung bình</dt><dd>5 – dưới 6,5</dd></div>
+                        <div><dt><i class="legend-dot chua-dat" aria-hidden="true"></i>Chưa đạt</dt><dd>Dưới 5</dd></div>
+                    </dl>
+                </aside>
+            </section>
+        </div>
+        <footer class="page-footer">Bài 1 <span aria-hidden="true">·</span> Phát triển ứng dụng Web <span aria-hidden="true">·</span> Vue 3</footer>
+    </main>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài 3 · Quản lý công việc cá nhân</title>
+    <link rel="stylesheet" href="assets/style.css">
+    <script src="assets/vendor/vue.global.prod.js" defer></script>
+    <script src="assets/bai_03.js" defer></script>
+</head>
+<body>
+    <noscript>Vui lòng bật JavaScript để quản lý công việc.</noscript>
+    <main id="app" v-cloak>
+        <header class="page-header">
+            <span class="eyebrow">THỰC HÀNH 06 <span aria-hidden="true">/</span> VUE.JS</span>
+            <div class="title-row"><h1>Công việc của tôi</h1><span class="day-label"><i aria-hidden="true"></i>Việc hôm nay</span></div>
+            <p>Từng việc nhỏ hoàn thành, một ngày gọn gàng hơn.</p>
+        </header>
+
+        <section class="statistics" aria-label="Thống kê công việc">
+            <div class="stat-card"><span class="stat-label">Tổng công việc</span><strong id="total-count">{{ tongSoCongViec }}</strong><span class="stat-caption">Tất cả những điều cần làm</span></div>
+            <div class="stat-card pending-stat"><span class="stat-label">Chưa hoàn thành</span><strong id="pending-count">{{ soViecChuaHoanThanh }}</strong><span class="stat-caption">Tiếp tục từng bước một</span></div>
+            <div class="stat-card done-stat"><span class="stat-label">Đã hoàn thành</span><strong id="done-count">{{ soViecDaHoanThanh }}</strong><span class="stat-caption">Mỗi việc xong là một tiến bộ</span></div>
+        </section>
+
+        <section class="task-panel" aria-labelledby="list-title">
+            <div class="panel-heading"><div><span class="eyebrow">KHÔNG GIAN TẬP TRUNG</span><h2 id="list-title">Danh sách công việc</h2></div><span class="panel-mark" aria-hidden="true">✦</span></div>
+            <!-- Submit bằng nút Thêm hoặc Enter, .prevent ngăn tải lại trang. -->
+            <form class="add-form" @submit.prevent="themCongViec">
+                <label for="new-task">Thêm một việc cần làm</label>
+                <div class="add-controls"><input id="new-task" ref="oNhapCongViec" type="text" v-model.trim="tenCongViecMoi" placeholder="Bạn muốn hoàn thành điều gì hôm nay?" autocomplete="off" aria-describedby="add-help"><button id="add-task" type="submit" :disabled="!tenCongViecHopLe"><span aria-hidden="true">+</span> Thêm</button></div>
+                <p id="add-help">Nhấn Enter để thêm nhanh. Tên công việc không được để trống.</p>
+            </form>
+
+            <div class="list-toolbar">
+                <div class="filters" role="group" aria-label="Lọc theo trạng thái">
+                    <button id="filter-all" type="button" @click="boLoc = 'tat-ca'" :class="{ active: boLoc === 'tat-ca' }" :aria-pressed="boLoc === 'tat-ca'">Tất cả <span>{{ tongSoCongViec }}</span></button>
+                    <button id="filter-pending" type="button" @click="boLoc = 'chua-hoan-thanh'" :class="{ active: boLoc === 'chua-hoan-thanh' }" :aria-pressed="boLoc === 'chua-hoan-thanh'">Chưa hoàn thành <span>{{ soViecChuaHoanThanh }}</span></button>
+                    <button id="filter-done" type="button" @click="boLoc = 'da-hoan-thanh'" :class="{ active: boLoc === 'da-hoan-thanh' }" :aria-pressed="boLoc === 'da-hoan-thanh'">Đã hoàn thành <span>{{ soViecDaHoanThanh }}</span></button>
+                </div>
+            </div>
+
+            <ul id="task-list" class="task-list" v-if="danhSachDaLoc.length > 0" aria-label="Các công việc">
+                <!-- id ổn định làm key, không dùng chỉ số mảng. -->
+                <li v-for="congViec in danhSachDaLoc" :key="congViec.id" :data-task-id="congViec.id" class="task-item" :class="{ 'is-complete': congViec.daHoanThanh }">
+                    <label class="task-label" :for="'task-' + congViec.id"><input :id="'task-' + congViec.id" type="checkbox" v-model="congViec.daHoanThanh"><span class="task-name">{{ congViec.ten }}</span></label>
+                    <span class="task-state">{{ congViec.daHoanThanh ? 'Hoàn thành' : 'Cần làm' }}</span>
+                    <button type="button" class="delete-task" @click="xoaCongViec(congViec.id)" :aria-label="'Xóa công việc: ' + congViec.ten" title="Xóa công việc"><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M9 6V4h6v2M5 6l1 14h12l1-14M10 10v6M14 10v6"/></svg></button>
+                </li>
+            </ul>
+            <div id="empty-state" class="empty-state" v-else role="status">
+                <span class="empty-icon" aria-hidden="true">{{ tongSoCongViec === 0 ? '+' : '✓' }}</span>
+                <h3>{{ thongBaoRong.tieuDe }}</h3><p>{{ thongBaoRong.noiDung }}</p>
+            </div>
+
+            <footer class="list-footer"><span id="visible-count" aria-live="polite">Hiển thị {{ danhSachDaLoc.length }} / {{ tongSoCongViec }} công việc</span><button id="clear-completed" type="button" @click="xoaCacViecDaHoanThanh" :disabled="soViecDaHoanThanh === 0">Xóa các việc đã hoàn thành</button></footer>
+        </section>
+
+        <section class="progress-summary" aria-label="Tiến độ hoàn thành">
+            <div class="progress-heading"><span>{{ tongSoCongViec === 0 ? 'Sẵn sàng cho một khởi đầu mới' : (soViecChuaHoanThanh === 0 ? 'Thật tốt! Bạn đã hoàn thành tất cả công việc.' : 'Còn ' + soViecChuaHoanThanh + ' việc đang chờ bạn hoàn thành.') }}</span><strong>{{ tiLeHoanThanh }}%</strong></div>
+            <div class="progress-track" role="progressbar" aria-label="Tỷ lệ công việc hoàn thành" :aria-valuenow="tiLeHoanThanh" aria-valuemin="0" aria-valuemax="100"><div :style="{ width: tiLeHoanThanh + '%' }"></div></div>
+        </section>
+        <footer class="page-footer">Bài 3 · Quản lý công việc cá nhân <span aria-hidden="true">/</span> Phan Thanh Dũng · 23001850</footer>
+    </main>
+</body>
+</html>

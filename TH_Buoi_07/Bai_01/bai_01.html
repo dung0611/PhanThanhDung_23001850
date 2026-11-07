@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Bài 1 · Quản lý sản phẩm</title><link rel="stylesheet" href="assets/style.css"><script src="assets/vendor/vue.global.prod.js" defer></script><script src="assets/bai_01.js" defer></script></head>
+<body>
+<header class="topbar"><div class="topbar-inner"><a class="brand" href="bai_01.html"><span class="brand-mark">V</span>Vue thực hành · Bài 1</a><nav class="nav" aria-label="Điều hướng bài 1"><a href="#list-title">Danh sách sản phẩm</a><a href="#new-name">Thêm sản phẩm</a></nav></div></header>
+<noscript>Vui lòng bật JavaScript để sử dụng bài thực hành.</noscript>
+<main id="app" v-cloak>
+<header class="intro"><div><span class="eyebrow">Bài 01 / Quản lý cửa hàng</span><h1>Sản phẩm & tồn kho</h1></div><span class="status" role="status">{{ trangThai }}</span></header>
+<section class="stats" aria-label="Thống kê theo bộ lọc" aria-live="polite">
+    <div class="stat"><span>Sản phẩm đang hiển thị / tổng số</span><strong id="visible-count">{{ soSanPhamHienThi }} / {{ tongSoSanPham }}</strong></div>
+    <div class="stat"><span>Tổng số lượng tồn kho đang hiển thị</span><strong id="inventory-quantity">{{ tongSoLuongTonKho }} <small>sản phẩm</small></strong></div>
+    <div class="stat accent"><span>Tổng giá trị tồn kho đang hiển thị</span><strong id="inventory-value">{{ dinhDangTien(tongGiaTriTonKho) }}</strong></div>
+</section>
+<div class="layout"><section class="panel" aria-labelledby="list-title"><div class="panel-head"><h2 id="list-title">Danh sách sản phẩm</h2><small>Đơn vị tiền: VND</small></div>
+<div class="toolbar">
+    <div><label for="search">Tìm theo tên</label><input id="search" type="search" v-model="tuKhoa" placeholder="Nhập tên sản phẩm…" aria-describedby="search-notice"></div>
+    <div>
+        <label for="category">Lọc theo danh mục</label>
+        <select id="category" v-model="danhMucLoc">
+            <option value="">Tất cả danh mục</option>
+            <option v-for="dm in danhMuc" :key="dm" :value="dm">{{ dm }}</option>
+        </select>
+    </div>
+    <div><label for="sort">Sắp xếp theo giá</label><select id="sort" v-model="sapXep"><option value="mac-dinh">Thứ tự ban đầu</option><option value="tang">Giá tăng dần</option><option value="giam">Giá giảm dần</option></select></div>
+</div>
+<p id="search-notice" v-show="thongBaoTuKhoa" class="notice" role="status">{{ thongBaoTuKhoa }}</p>
+<div v-if="sanPhamChoXoa" class="confirm" role="alertdialog" aria-modal="false" aria-labelledby="delete-title"><strong id="delete-title">Xóa “{{ sanPhamChoXoa.ten }}”?</strong><p>Sản phẩm sẽ được xóa khỏi danh sách hiện tại.</p><div class="actions"><button ref="nutHuyXoa" class="secondary" @click="huyXoa">Hủy</button><button class="danger" @click="xacNhanXoa">Xác nhận xóa</button></div></div>
+<div class="table-scroll"><table><caption>Danh sách sản phẩm phù hợp với tìm kiếm và bộ lọc</caption><thead><tr><th scope="col">ID</th><th scope="col">Sản phẩm</th><th scope="col">Danh mục</th><th scope="col" class="number">Giá</th><th scope="col" class="number stock-heading">Số lượng tồn kho</th><th scope="col">Trạng thái</th><th scope="col">Thao tác</th></tr></thead><tbody><tr v-for="sp in sanPhamHienThi" :key="sp.id"><td class="product-id">{{ String(sp.id).padStart(4, '0') }}</td><td class="product-name">{{ sp.ten }}</td><td>{{ sp.danhMuc }}</td><td class="number">{{ dinhDangTien(sp.gia) }}</td><td class="number">{{ sp.tonKho }}</td><td><span class="badge" :class="{ out: sp.tonKho === 0 }">{{ sp.tonKho > 0 ? 'Còn hàng' : 'Hết hàng' }}</span></td><td><button class="danger" @click="yeuCauXoa(sp.id)" :aria-label="'Xóa ' + sp.ten">Xóa</button></td></tr></tbody></table></div>
+<div v-if="soSanPhamHienThi === 0" class="empty"><span class="empty-mark" aria-hidden="true">⌕</span><strong>Không có sản phẩm phù hợp</strong><p>Thử đổi từ khóa hoặc chọn một danh mục khác.</p><button class="secondary" @click="datLaiBoLoc">Đặt lại bộ lọc</button></div>
+<footer class="panel-foot"><span>{{ soSanPhamHienThi }} sản phẩm phù hợp</span><button class="link-button" @click="datLaiBoLoc">Đặt lại bộ lọc</button></footer></section>
+<aside class="panel add-panel"><h2>Thêm sản phẩm</h2><p class="muted">Bổ sung một sản phẩm vào cửa hàng.</p><form @submit.prevent="themSanPham" novalidate>
+    <div class="field"><label for="new-name">Tên sản phẩm</label><input id="new-name" v-model="sanPhamMoi.ten" required placeholder="Ví dụ: Bút chì 2B"></div>
+    <div class="field"><label for="new-price">Giá (đồng)</label><input id="new-price" type="number" v-model="sanPhamMoi.gia" min="0.01" step="any" required placeholder="Lớn hơn 0"></div>
+    <div class="field"><label for="new-category">Danh mục</label><select id="new-category" v-model="sanPhamMoi.danhMuc"><option v-for="dm in danhMuc" :key="dm" :value="dm">{{ dm }}</option><option value="__khac__">Khác (nhập danh mục mới)</option></select></div>
+    <div v-if="sanPhamMoi.danhMuc === '__khac__'" class="field"><label for="new-custom-category">Tên danh mục mới</label><input id="new-custom-category" v-model="sanPhamMoi.danhMucKhac" required placeholder="Ví dụ: Đồ thủ công"><p class="note">Danh mục mới sẽ được thêm vào bộ lọc sau khi lưu sản phẩm.</p></div>
+    <div class="field"><label for="new-stock">Số lượng tồn kho</label><input id="new-stock" type="number" v-model="sanPhamMoi.tonKho" min="0" step="1" required placeholder="Nhập số lượng, ví dụ: 20"></div><ul v-if="loi.length" class="errors" role="alert"><li v-for="thongBao in loi" :key="thongBao">{{ thongBao }}</li></ul><button class="primary wide" type="submit">+ Thêm sản phẩm</button>
+</form><p class="feedback" role="status">{{ thongBaoThaoTac }}</aside></div>
+<footer class="footer"><span>Bài 1 · Directive, methods, computed, watch, mounted</span><span>Phan Thanh Dũng · 23001850</span></footer>
+</main></body></html>

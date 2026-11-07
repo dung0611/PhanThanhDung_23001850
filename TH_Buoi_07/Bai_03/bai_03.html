@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Bài 3 · Giỏ hàng</title><link rel="stylesheet" href="assets/style.css"><script src="assets/vendor/vue.global.prod.js" defer></script><script src="components/DongGioHang.js" defer></script><script src="assets/bai_03.js" defer></script></head>
+<body><header class="topbar"><div class="topbar-inner"><a class="brand" href="bai_03.html"><span class="brand-mark">V</span>Vue thực hành</a><nav class="nav" aria-label="Điều hướng bài 3"><a href="#cart-title">Sản phẩm đã chọn</a><a href="#summary-title">Tóm tắt giỏ hàng</a></nav></div></header>
+<noscript>Vui lòng bật JavaScript để sử dụng bài thực hành.</noscript>
+<main id="app" v-cloak><header class="intro"><div><span class="eyebrow">Bài 03 / Giỏ hàng của bạn</span><h1>Giỏ hàng của Dũng</h1></div><span class="status">{{ gioHang.length }} loại sản phẩm</span></header>
+<div class="layout cart-layout"><section class="panel" aria-labelledby="cart-title"><div class="panel-head"><h2 id="cart-title">Sản phẩm đã chọn</h2><small>Số lượng: 1–99 mỗi loại</small></div>
+<div v-if="gioHang.length"><dong-gio-hang v-for="sp in gioHang" :key="sp.id" :id="sp.id" :ten="sp.ten" :don-gia="sp.donGia" :so-luong="sp.soLuong" @doi-so-luong="doiSoLuong" @yeu-cau-xoa="xoaSanPham"></dong-gio-hang></div>
+<div v-else class="empty" role="status"><span class="empty-mark" aria-hidden="true">⌑</span><strong>Giỏ hàng trống</strong></div>
+<footer class="panel-foot"><span aria-live="polite">{{ thongBao || 'Thay đổi của bạn được cập nhật ngay.' }}</span></footer></section>
+<aside class="panel summary" aria-labelledby="summary-title"><h2 id="summary-title">Tóm tắt giỏ hàng</h2><div class="summary-line"><span>Số loại sản phẩm</span><strong>{{ gioHang.length }}</strong></div><div class="summary-line"><span>Tổng số lượng</span><strong id="total-quantity" aria-live="polite">{{ tongSoLuong }}</strong></div><div class="summary-total"><span class="muted">Tổng tiền</span><div><strong id="total-price" aria-live="polite">{{ dinhDangTien(tongTien) }}</strong></div></div><p class="note">Thành tiền được tính bằng đơn giá × số lượng.</p></aside></div>
+<footer class="footer"><span>Bài 3 · Props, $emit & luồng dữ liệu một chiều</span><span>Phan Thanh Dũng · 23001850</span></footer></main></body></html>

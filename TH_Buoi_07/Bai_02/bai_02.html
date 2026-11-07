@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Bài 2 · Danh mục sản phẩm</title><link rel="stylesheet" href="assets/style.css"><script src="assets/vendor/vue.global.prod.js" defer></script><script src="components/TheSanPham.js" defer></script><script src="assets/bai_02.js" defer></script></head>
+<body><header class="topbar"><div class="topbar-inner"><a class="brand" href="bai_02.html"><span class="brand-mark">V</span>Vue thực hành</a><nav class="nav" aria-label="Điều hướng bài 2"><a href="#catalog">Danh mục sản phẩm</a></nav></div></header>
+<noscript>Vui lòng bật JavaScript để sử dụng bài thực hành.</noscript>
+<main id="app" v-cloak><header class="intro"><div><span class="eyebrow">Bài 02 / Góc văn phòng phẩm</span><h1>Những món nhỏ, niềm vui lớn.</h1></div><span class="status">{{ sanPham.length }} sản phẩm</span></header>
+<div class="catalog-note"><strong>Mỗi sản phẩm, một câu chuyện.</strong><span>Nhấn “Xem mô tả” để khám phá từng món đồ.</span></div>
+<section id="catalog" class="cards" aria-label="Danh mục sản phẩm"><the-san-pham v-for="sp in sanPham" :key="sp.id" :ten="sp.ten" :gia="sp.gia" :anh="sp.anh" :mo-ta="sp.moTa" :ton-kho="sp.tonKho"></the-san-pham></section>
+<footer class="footer"><span>Bài 2 · Component, props & trạng thái riêng</span><span>Phan Thanh Dũng · 23001850</span></footer></main></body></html>

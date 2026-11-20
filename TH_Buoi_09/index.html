@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buổi 09 · Quản lý sản phẩm</title>
+    <link rel="stylesheet" href="assets/style.css">
+    <script src="assets/vendor/vue.global.prod.js" defer></script>
+    <script src="assets/app.js" defer></script>
+</head>
+<body>
+    <header class="topbar">
+        <div class="container topbar-inner">
+            <a class="brand" href="index.html"><span class="brand-mark">09</span> Quản lý sản phẩm</a>
+            <span class="student">Phan Thanh Dũng · 23001850</span>
+        </div>
+    </header>
+    <noscript>Vui lòng bật JavaScript để sử dụng trang quản lý sản phẩm.</noscript>
+    <main id="app" class="container" v-cloak>
+        <div class="intro">
+            <div>
+                <p class="eyebrow">Thực hành PHP và Vue.js / Buổi 09</p>
+                <h1>Sản phẩm của bạn.</h1>
+            </div>
+            <span class="tag">Văn phòng phẩm</span>
+        </div>
+
+        <div v-if="error" class="notice error" role="alert">{{ error }}</div>
+        <div v-if="success" class="notice success" role="status">{{ success }}</div>
+
+        <section class="stats" aria-label="Thống kê sản phẩm">
+            <div class="stat"><span>Tổng sản phẩm</span><strong>{{ loaded ? pagination.total : '—' }}</strong></div>
+            <div class="stat"><span>Tồn kho trang này</span><strong>{{ loaded ? totalStock.toLocaleString('vi-VN') : '—' }}</strong></div>
+            <div class="stat accent"><span>Hết hàng trang này</span><strong>{{ loaded ? outOfStock : '—' }}</strong></div>
+        </section>
+
+        <div class="layout">
+            <section class="panel" aria-labelledby="list-title" :aria-busy="busy">
+                <div class="panel-head">
+                    <div><h2 id="list-title">Danh sách sản phẩm</h2><p class="muted small">Đơn giá được tính bằng đồng Việt Nam.</p></div>
+                    <button class="button secondary" type="button" @click="loadProducts()" :disabled="busy">{{ loading ? 'Đang tải…' : 'Làm mới' }}</button>
+                </div>
+                <div class="table-scroll">
+                    <table>
+                        <caption class="sr-only">Tên sản phẩm, ảnh, đơn giá, số lượng tồn và thao tác</caption>
+                        <thead><tr><th scope="col">Sản phẩm</th><th scope="col">Ảnh</th><th scope="col" class="number">Đơn giá</th><th scope="col" class="number">Tồn kho</th><th scope="col" class="actions-heading">Thao tác</th></tr></thead>
+                        <tbody>
+                            <tr v-for="product in products" :key="product.id" :class="{ selected: editingId === product.id }">
+                                <td class="product-name"><strong>{{ product.name }}</strong></td>
+                                <td><img v-if="product.image" :src="product.image" :alt="'Ảnh ' + product.name" class="thumbnail"><span v-else class="muted small">Chưa có ảnh</span></td>
+                                <td class="number price">{{ formatPrice(product.price) }}</td>
+                                <td class="number"><span :class="['stock', { empty: product.stock === 0 }]">{{ product.stock === 0 ? 'Hết hàng · 0' : product.stock }}</span></td>
+                                <td class="row-actions"><button type="button" class="button edit" :disabled="busy" @click="editProduct(product)" :aria-label="'Sửa ' + product.name">Sửa</button><button type="button" class="button danger" :disabled="busy" @click="deleteProduct(product)" :aria-label="'Xóa ' + product.name">Xóa</button></td>
+                            </tr>
+                            <tr v-if="products.length === 0"><td colspan="5" class="empty-state">{{ loading ? 'Đang tải danh sách sản phẩm…' : loaded ? 'Chưa có sản phẩm' : 'Chưa tải được danh sách. Hãy kiểm tra kết nối và bấm Làm mới.' }}</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="panel-foot pagination">
+                    <button type="button" class="button secondary" @click="changePage(pagination.page - 1)" :disabled="busy || !loaded || pagination.page <= 1">Trước</button>
+                    <span aria-live="polite">Trang {{ pagination.page }} / {{ pagination.total_pages }} — Tổng {{ pagination.total }} sản phẩm</span>
+                    <button type="button" class="button secondary" @click="changePage(pagination.page + 1)" :disabled="busy || !loaded || pagination.page >= pagination.total_pages">Sau</button>
+                </div>
+            </section>
+
+            <aside class="panel form-panel" aria-labelledby="form-title">
+                <span class="eyebrow">{{ editingId === null ? 'Sản phẩm mới' : 'Đang chỉnh sửa' }}</span>
+                <h2 id="form-title">{{ editingId === null ? 'Thêm sản phẩm' : 'Sửa sản phẩm' }}</h2>
+                <p class="muted small">Điền thông tin sản phẩm; ảnh có thể để trống.</p>
+                <form @submit.prevent="saveProduct" novalidate>
+                    <fieldset :disabled="busy">
+                        <div class="field"><label for="name">Tên sản phẩm</label><input id="name" ref="nameInput" v-model="form.name" type="text" placeholder="Ví dụ: Bút bi" required aria-describedby="name-hint"><small id="name-hint" class="muted">Từ 1 đến 100 ký tự.</small></div>
+                        <div class="field"><label for="price">Đơn giá (đồng)</label><input id="price" v-model.number="form.price" type="number" min="1" max="2147483647" step="1" placeholder="Ví dụ: 5000" required></div>
+                        <div class="field"><label for="stock">Số lượng tồn</label><input id="stock" v-model.number="form.stock" type="number" min="0" max="2147483647" step="1" placeholder="Ví dụ: 20" required><small class="muted">Nhập 0 nếu sản phẩm đã hết hàng.</small></div>
+                        <div class="field"><label for="image">Ảnh sản phẩm</label><input id="image" ref="imageInput" type="file" accept=".jpg,.jpeg,.png,image/jpeg,image/png" :aria-invalid="!!imageError" aria-describedby="image-hint image-error" @change="onImageChange"><small id="image-hint" class="muted">JPG, JPEG hoặc PNG; tối đa 2 MB.</small><p v-if="imageError" id="image-error" class="field-error" role="alert">{{ imageError }}</p><button v-if="imageError && !selectedFile" class="button secondary ignore-image" type="button" @click="ignoreImageError">Tiếp tục không có ảnh</button></div>
+                        <div v-if="imagePreview" class="image-preview"><img :src="imagePreview" alt="Xem trước ảnh sản phẩm"><span class="muted small">{{ selectedFile ? 'Ảnh mới được chọn' : 'Ảnh hiện tại' }}</span></div>
+                        <button v-if="pendingUploadId && selectedFile" class="button secondary wide retry" type="button" @click="retryUpload">Thử tải ảnh lại</button>
+                        <button class="button primary wide" type="submit">{{ saving ? 'Đang lưu…' : editingId === null ? 'Lưu sản phẩm' : 'Lưu thay đổi' }}</button>
+                        <button v-if="editingId !== null" class="button secondary wide cancel" type="button" @click="resetForm">Hủy chỉnh sửa</button>
+                    </fieldset>
+                </form>
+            </aside>
+        </div>
+        <dialog ref="deleteDialog" class="confirm-dialog" role="alertdialog" aria-labelledby="delete-title" aria-describedby="delete-description" @cancel.prevent="cancelDelete">
+            <div v-if="pendingDelete">
+                <span class="confirm-icon" aria-hidden="true">!</span>
+                <h2 id="delete-title">Xác nhận xóa sản phẩm</h2>
+                <p id="delete-description">Bạn có chắc muốn xóa sản phẩm <strong>“{{ pendingDelete.name }}”</strong>?</p>
+                <p class="muted small">Sản phẩm sẽ được xóa khỏi danh sách.</p>
+                <div v-if="deleteError" class="notice error delete-error" role="alert">{{ deleteError }}</div>
+                <div class="confirm-actions">
+                    <button type="button" class="button secondary" autofocus :disabled="saving" @click="cancelDelete">Hủy</button>
+                    <button type="button" class="button delete-confirm" :disabled="busy" @click="confirmDelete">{{ saving ? 'Đang xóa…' : 'Xác nhận xóa' }}</button>
+                </div>
+            </div>
+        </dialog>
+        <footer class="footer"><span>TH_Buoi_09 · Thực hành PHP và Vue.js</span><span>Phan Thanh Dũng · 23001850</span></footer>
+    </main>
+</body>
+</html>

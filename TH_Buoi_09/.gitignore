@@ -1,3 +1,6 @@
 /uploads/*
 !/uploads/.gitkeep
 !/uploads/.htaccess
+!/uploads/*.jpg
+!/uploads/*.jpeg
+!/uploads/*.png
